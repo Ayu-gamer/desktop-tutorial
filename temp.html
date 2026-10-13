@@ -165,22 +165,20 @@
     // ---------- 数据操作（三步口诀：改数据 → 保存 → 重渲染）----------
 
     // 添加：用展开
-    function addTodo(text) {
-      const trimmed = text.trim();
-      if (!trimmed) return;
+function addTodo(text) {
+  const trimmed = text.trim();
+  if (!trimmed) return;
 
-      const newTodo = {
-        id: Date.now().toString(),
-        text: trimmed,
-        completed: false
-      };
-      todos = [...todos, newTodo];   // 不改原数组
-      save();
-      render();
-
-      inputEl.value = '';
-      inputEl.focus();
-    }
+  const newTodo = {
+    id: crypto.randomUUID(),   // ✅ 用 UUID，避免同毫秒重复
+    text: trimmed,
+    completed: false
+  };
+  todos = [...todos, newTodo];   // 不改原数组
+  save();
+  render();
+  // ✅ DOM 操作已移出，这里只负责数据
+}
 
     // 删除：用 filter
     function removeTodo(id) {
@@ -261,10 +259,19 @@
     }
 
     // ---------- 事件绑定 ----------
-    addBtn.addEventListener('click', () => addTodo(inputEl.value));
-    inputEl.addEventListener('keydown', e => {
-      if (e.key === 'Enter') addTodo(inputEl.value);
-    });
+    addBtn.addEventListener('click', () => {
+  addTodo(inputEl.value);
+  inputEl.value = '';
+  inputEl.focus();
+});
+
+inputEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    addTodo(inputEl.value);
+    inputEl.value = '';
+    inputEl.focus();
+  }
+});
 
     filterBtns.forEach(btn => {
       btn.addEventListener('click', () => setFilter(btn.dataset.filter));
