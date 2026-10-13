@@ -196,7 +196,11 @@ function addTodo(text) {
       render();
     }
 
-    // function clearCompleted() { ... }
+    function clearCompleted() {
+  todos = todos.filter(t => !t.completed);   
+  save();
+  render();
+}
 
     // ---------- 视图状态：筛选 ----------
     function setFilter(next) {
