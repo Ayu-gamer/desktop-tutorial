@@ -89,6 +89,18 @@
       color: #cbd5e1; font-size: 1.2rem; padding: 0 4px;
     }
     .remove-btn:hover { color: #ef4444; }
+    .edit-btn {
+      background: transparent; border: none; cursor: pointer;
+      color: #94a3b8; font-size: 1rem; padding: 0 4px;
+    }
+    .edit-btn:hover { color: #3b82f6; }
+    .todo-edit {
+      flex: 1; min-width: 0; font-size: 1rem; color: #1e293b;
+      padding: 0.35rem 0.5rem; border: 1.5px solid #3b82f6;
+      border-radius: 8px; outline: none;
+      box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+    }
+
     .empty-message {
       text-align: center; color: #94a3b8; font-size: 0.95rem;
       padding: 2rem 0.5rem; background: white;
@@ -141,6 +153,7 @@
     // ---------- 状态 ----------
     let todos = [];              // 唯一数据源
     let filter = 'all';          // 'all' | 'active' | 'completed'
+    let editingId = null;        // 正在编辑的任务 id
     const STORAGE_KEY = 'todos-v2';
 
     // ---------- DOM ----------
@@ -182,6 +195,7 @@ function addTodo(text) {
     // 删除：用 filter
     function deleteTodo(id) {
       console.log('[deleteTodo] id=' + id + ' todos.length=' + todos.length);
+      if (editingId === id) editingId = null;
       todos = todos.filter(t => t.id !== id);   // 不改原数组
       save();
       render();
@@ -198,14 +212,34 @@ function addTodo(text) {
     }
 
     function clearCompleted() {
+  editingId = null;
   todos = todos.filter(t => !t.completed);   
   save();
   render();
 }
 
+    // ---------- 编辑分支（独立迁移）----------
+    // 进入编辑：只记录 id，input 交给 render 生成，保证重渲染后编辑态不丢
+    function startEdit(id) {
+      if (!todos.some(t => t.id === id)) return;
+      editingId = id;
+      render();
+    }
+
+    // 提交编辑：仍然走“改数据 → save → render”
+    function updateTodo(id, text) {
+      const next = text.trim();
+      if (!next) return false;
+      todos = todos.map(t => t.id === id ? { ...t, text: next } : t);
+      save();
+      render();
+      return true;
+    }
+
     // ---------- 视图状态：筛选 ----------
     function setFilter(next) {
       filter = next;
+      editingId = null;
       filterBtns.forEach(btn => {
         btn.classList.toggle('active', btn.dataset.filter === next);
       });
@@ -242,10 +276,47 @@ function addTodo(text) {
           cb.checked = todo.completed;
           cb.dataset.action = 'toggle';
 
-          // 文本（textContent 防 XSS）
-          const textEl = document.createElement('span');
-          textEl.className = 'todo-text';
-          textEl.textContent = todo.text;
+          // 文本：编辑态渲染 input，平时渲染 span
+          let textEl;
+          if (editingId === todo.id) {
+            textEl = document.createElement('input');
+            textEl.type = 'text';
+            textEl.className = 'todo-edit';
+            textEl.value = todo.text;
+
+            textEl.addEventListener('keydown', e => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                textEl.blur();                 // 交给 blur 统一提交
+              } else if (e.key === 'Escape') {
+                e.preventDefault();
+                editingId = null;              // 取消：不写数据，直接重渲染
+                render();
+              }
+            });
+
+            textEl.addEventListener('blur', () => {
+              if (editingId !== todo.id) return;
+              const next = textEl.value.trim();
+              editingId = null;
+              if (next && next !== todo.text) {
+                updateTodo(todo.id, next);
+              } else {
+                render();                      // 空值/未改动：恢复原文字
+              }
+            });
+          } else {
+            textEl = document.createElement('span');
+            textEl.className = 'todo-text';
+            textEl.textContent = todo.text;
+          }
+
+          // 编辑按钮（按钮里的 ✎ 也算编辑）
+          const edit = document.createElement('button');
+          edit.className = 'edit-btn';
+          edit.dataset.action = 'edit';
+          edit.textContent = '✎';
+          edit.title = '编辑';
 
           // 删除按钮（按钮里的 × 也算删除）
           const del = document.createElement('button');
@@ -253,7 +324,7 @@ function addTodo(text) {
           del.dataset.action = 'delete';
           del.textContent = '×';
 
-          li.append(cb, textEl, del);
+          li.append(cb, textEl, edit, del);
           todoList.appendChild(li);
         });
       }
@@ -262,6 +333,14 @@ function addTodo(text) {
       const remaining = todos.filter(t => !t.completed).length;
       counterEl.textContent = `${remaining} 项未完成 / 共 ${todos.length} 项`;
 
+      // 重渲染后把焦点还给正在编辑的 input
+      if (editingId) {
+        const editInput = todoList.querySelector(`li[data-id="${editingId}"] .todo-edit`);
+        if (editInput) {
+          editInput.focus();
+          editInput.select();
+        }
+      }
     }
 
     // ---------- 事件绑定 ----------
@@ -292,6 +371,15 @@ inputEl.addEventListener('keydown', e => {
 
       const id = item.dataset.id;
       if (!id) return;
+
+      // 编辑框内的点击不触发切换
+      if (e.target.closest('.todo-edit')) return;
+
+      const editBtn = e.target.closest('[data-action="edit"]');
+      if (editBtn && item.contains(editBtn)) {
+        startEdit(id);
+        return;
+      }
 
       const delBtn = e.target.closest('[data-action="delete"]');
       if (delBtn && item.contains(delBtn)) {
