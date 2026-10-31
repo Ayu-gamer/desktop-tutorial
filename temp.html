@@ -296,6 +296,7 @@ inputEl.addEventListener('keydown', e => {
       const delBtn = e.target.closest('[data-action="delete"]');
       if (delBtn && item.contains(delBtn)) {
         deleteTodo(id);
+        return;                       // 删除和切换互斥，删除后立即结束
       }
 
       toggleTodo(id);
