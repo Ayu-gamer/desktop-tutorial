@@ -89,7 +89,6 @@
       color: #cbd5e1; font-size: 1.2rem; padding: 0 4px;
     }
     .remove-btn:hover { color: #ef4444; }
-
     .empty-message {
       text-align: center; color: #94a3b8; font-size: 0.95rem;
       padding: 2rem 0.5rem; background: white;
@@ -181,7 +180,8 @@ function addTodo(text) {
 }
 
     // 删除：用 filter
-    function removeTodo(id) {
+    function deleteTodo(id) {
+      console.log('[deleteTodo] id=' + id + ' todos.length=' + todos.length);
       todos = todos.filter(t => t.id !== id);   // 不改原数组
       save();
       render();
@@ -189,6 +189,7 @@ function addTodo(text) {
 
     // 切换完成状态：用 map + 展开
     function toggleTodo(id) {
+      console.log('[toggleTodo] id=' + id + ' todos.length=' + todos.length);
       todos = todos.map(t =>
         t.id === id ? { ...t, completed: !t.completed } : t
       );                                        // 不改原数组
@@ -235,24 +236,24 @@ function addTodo(text) {
           li.className = 'todo-item' + (todo.completed ? ' completed' : '');
           li.dataset.id = todo.id;
 
-          // checkbox
+          // checkbox（点击事件统一冒泡到 ul，由委托处理）
           const cb = document.createElement('input');
           cb.type = 'checkbox';
           cb.checked = todo.completed;
-          cb.addEventListener('change', () => toggleTodo(todo.id));
+          cb.dataset.action = 'toggle';
 
           // 文本（textContent 防 XSS）
-          const span = document.createElement('span');
-          span.className = 'todo-text';
-          span.textContent = todo.text;
+          const textEl = document.createElement('span');
+          textEl.className = 'todo-text';
+          textEl.textContent = todo.text;
 
-          // 删除按钮
+          // 删除按钮（按钮里的 × 也算删除）
           const del = document.createElement('button');
           del.className = 'remove-btn';
+          del.dataset.action = 'delete';
           del.textContent = '×';
-          del.addEventListener('click', () => removeTodo(todo.id));
 
-          li.append(cb, span, del);
+          li.append(cb, textEl, del);
           todoList.appendChild(li);
         });
       }
@@ -260,6 +261,7 @@ function addTodo(text) {
       // 计数（用真实总数，不受 filter 影响）
       const remaining = todos.filter(t => !t.completed).length;
       counterEl.textContent = `${remaining} 项未完成 / 共 ${todos.length} 项`;
+
     }
 
     // ---------- 事件绑定 ----------
@@ -281,8 +283,26 @@ inputEl.addEventListener('keydown', e => {
       btn.addEventListener('click', () => setFilter(btn.dataset.filter));
     });
 
-    // 清除已完成按钮（等 clearCompleted 写完再绑定）
-    // clearBtn.addEventListener('click', clearCompleted);
+    // ---------- 事件委托：整个列表只在父容器 ul 上绑一次 ----------
+    todoList.addEventListener('click', (e) => {
+      if (!(e.target instanceof Element)) return;
+
+      const item = e.target.closest('li');
+      if (!item || !todoList.contains(item)) return;
+
+      const id = item.dataset.id;
+      if (!id) return;
+
+      const delBtn = e.target.closest('[data-action="delete"]');
+      if (delBtn && item.contains(delBtn)) {
+        deleteTodo(id);
+      }
+
+      toggleTodo(id);
+    });
+
+    // 清除已完成按钮
+    clearBtn.addEventListener('click', clearCompleted);
 
     // ---------- 启动 ----------
     load();
