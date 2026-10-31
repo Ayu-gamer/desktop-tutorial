@@ -1,0 +1,13 @@
+{
+  "name": "todo-list-v2",
+  "version": "3.0.0",
+  "private": true,
+  "type": "module",
+  "description": "W9: Todo 列表 TypeScript 重构与单元测试",
+  "scripts": {
+    "build": "node --no-warnings scripts/build.mjs",
+    "test": "node --test --experimental-strip-types tests/todo.test.ts",
+    "test:ai": "node --test --experimental-strip-types tests/ai-generated.test.ts",
+    "verify": "node --no-warnings scripts/build.mjs && node --test --experimental-strip-types tests/todo.test.ts"
+  }
+}
