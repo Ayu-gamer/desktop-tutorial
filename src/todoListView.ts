@@ -30,22 +30,14 @@ export function renderTodoList(
 }
 
 /** 只负责底部计数文案。 */
-export function renderCounter(
-  counter: HTMLElement,
-  todos: readonly Todo[]
-): void {
-  const remaining = todos.filter(todo => !todo.completed).length;
+export function renderCounter(counter: HTMLElement, todos: readonly Todo[]): void {
+  const remaining = todos.filter((todo) => !todo.completed).length;
   counter.textContent = `${remaining} 项未完成 / 共 ${todos.length} 项`;
 }
 
 /** 只负责把焦点交给正在编辑的输入框。 */
-export function focusEditInput(
-  list: HTMLUListElement,
-  editingId: number
-): void {
-  const editInput = list.querySelector<HTMLInputElement>(
-    `li[data-id="${editingId}"] .todo-edit`
-  );
+export function focusEditInput(list: HTMLUListElement, editingId: number): void {
+  const editInput = list.querySelector<HTMLInputElement>(`li[data-id="${editingId}"] .todo-edit`);
 
   if (editInput) {
     editInput.focus();

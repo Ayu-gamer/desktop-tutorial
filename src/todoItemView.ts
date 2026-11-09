@@ -42,20 +42,13 @@ function handleEditKeydown(
   }
 }
 
-function handleEditBlur(
-  editInput: HTMLInputElement,
-  todo: Todo,
-  handlers: TodoItemHandlers
-): void {
+function handleEditBlur(editInput: HTMLInputElement, todo: Todo, handlers: TodoItemHandlers): void {
   // 回车 / Esc / 重新渲染都会让输入框失焦；只有仍是本条在编辑时才提交。
   if (!handlers.isEditing(todo.id)) return;
   handlers.commitEdit(todo, editInput.value);
 }
 
-function createEditInput(
-  todo: Todo,
-  handlers: TodoItemHandlers
-): HTMLInputElement {
+function createEditInput(todo: Todo, handlers: TodoItemHandlers): HTMLInputElement {
   const editInput = document.createElement('input');
   editInput.type = 'text';
   editInput.className = 'todo-edit';
@@ -105,10 +98,7 @@ function createDeleteButton(): HTMLButtonElement {
   });
 }
 
-export function createTodoItem(
-  todo: Todo,
-  handlers: TodoItemHandlers
-): HTMLLIElement {
+export function createTodoItem(todo: Todo, handlers: TodoItemHandlers): HTMLLIElement {
   const li = document.createElement('li');
   li.className = todo.completed ? 'todo-item completed' : 'todo-item';
   li.dataset.id = String(todo.id);
@@ -117,12 +107,7 @@ export function createTodoItem(
     ? createEditInput(todo, handlers)
     : createTextSpan(todo);
 
-  li.append(
-    createToggleCheckbox(todo),
-    textEl,
-    createEditButton(),
-    createDeleteButton()
-  );
+  li.append(createToggleCheckbox(todo), textEl, createEditButton(), createDeleteButton());
 
   return li;
 }

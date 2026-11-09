@@ -20,10 +20,7 @@ interface ListTarget {
 }
 
 /** 取 target -> 找所属 li -> 校验归属 -> 解析 id；任何一步不成立都返回 null。 */
-function findListTarget(
-  target: Element,
-  list: HTMLUListElement
-): ListTarget | null {
+function findListTarget(target: Element, list: HTMLUListElement): ListTarget | null {
   const item = target.closest<HTMLLIElement>('li.todo-item');
   if (!item || !list.contains(item)) return null;
 
@@ -38,11 +35,7 @@ function isInsideEditField(target: Element): boolean {
   return target.closest('.todo-edit') !== null;
 }
 
-function matchActionButton(
-  target: Element,
-  item: HTMLLIElement,
-  action: ButtonAction
-): boolean {
+function matchActionButton(target: Element, item: HTMLLIElement, action: ButtonAction): boolean {
   const button = target.closest<HTMLButtonElement>(ACTION_SELECTORS[action]);
   return button !== null && item.contains(button);
 }

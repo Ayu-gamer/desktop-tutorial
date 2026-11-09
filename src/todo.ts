@@ -75,13 +75,9 @@ export function nextTodoId(todos: readonly Todo[]): number {
   return Math.max(Date.now(), maxId + 1);
 }
 
-export function addTodo(
-  todos: readonly Todo[],
-  text: string,
-  id: number
-): readonly Todo[] {
+export function addTodo(todos: readonly Todo[], text: string, id: number): readonly Todo[] {
   if (!Number.isSafeInteger(id) || id <= 0) return todos;
-  if (todos.some(todo => todo.id === id)) return todos;
+  if (todos.some((todo) => todo.id === id)) return todos;
 
   const trimmed = text.trim();
   if (!trimmed) return todos;
@@ -89,53 +85,34 @@ export function addTodo(
   return [...todos, { id, text: trimmed, completed: false }];
 }
 
-export function toggleTodo(
-  todos: readonly Todo[],
-  id: number
-): readonly Todo[] {
-  if (!todos.some(todo => todo.id === id)) return todos;
+export function toggleTodo(todos: readonly Todo[], id: number): readonly Todo[] {
+  if (!todos.some((todo) => todo.id === id)) return todos;
 
-  return todos.map(todo =>
-    todo.id === id ? { ...todo, completed: !todo.completed } : todo
-  );
+  return todos.map((todo) => (todo.id === id ? { ...todo, completed: !todo.completed } : todo));
 }
 
-export function deleteTodo(
-  todos: readonly Todo[],
-  id: number
-): readonly Todo[] {
-  if (!todos.some(todo => todo.id === id)) return todos;
-  return todos.filter(todo => todo.id !== id);
+export function deleteTodo(todos: readonly Todo[], id: number): readonly Todo[] {
+  if (!todos.some((todo) => todo.id === id)) return todos;
+  return todos.filter((todo) => todo.id !== id);
 }
 
-export function updateTodo(
-  todos: readonly Todo[],
-  id: number,
-  text: string
-): readonly Todo[] {
+export function updateTodo(todos: readonly Todo[], id: number, text: string): readonly Todo[] {
   const trimmed = text.trim();
   if (!trimmed) return todos;
 
-  const target = todos.find(todo => todo.id === id);
+  const target = todos.find((todo) => todo.id === id);
   if (!target || target.text === trimmed) return todos;
 
-  return todos.map(todo =>
-    todo.id === id ? { ...todo, text: trimmed } : todo
-  );
+  return todos.map((todo) => (todo.id === id ? { ...todo, text: trimmed } : todo));
 }
 
-export function clearCompleted(
-  todos: readonly Todo[]
-): readonly Todo[] {
-  if (!todos.some(todo => todo.completed)) return todos;
-  return todos.filter(todo => !todo.completed);
+export function clearCompleted(todos: readonly Todo[]): readonly Todo[] {
+  if (!todos.some((todo) => todo.completed)) return todos;
+  return todos.filter((todo) => !todo.completed);
 }
 
-export function getVisibleTodos(
-  todos: readonly Todo[],
-  filter: Filter
-): readonly Todo[] {
-  if (filter === 'active') return todos.filter(todo => !todo.completed);
-  if (filter === 'completed') return todos.filter(todo => todo.completed);
+export function getVisibleTodos(todos: readonly Todo[], filter: Filter): readonly Todo[] {
+  if (filter === 'active') return todos.filter((todo) => !todo.completed);
+  if (filter === 'completed') return todos.filter((todo) => todo.completed);
   return todos;
 }

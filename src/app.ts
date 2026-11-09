@@ -10,11 +10,7 @@ import {
   updateTodo
 } from './todo';
 import type { Filter, Todo } from './todo';
-import {
-  focusEditInput,
-  renderCounter,
-  renderTodoList
-} from './todoListView';
+import { focusEditInput, renderCounter, renderTodoList } from './todoListView';
 import type { TodoItemHandlers } from './todoItemView';
 import { resolveTodoClick } from './todoListActions';
 import type { TodoListAction } from './todoListActions';
@@ -92,14 +88,14 @@ const itemHandlers: TodoItemHandlers = {
 function setFilter(next: Filter): void {
   filter = next;
   editingId = null;
-  filterBtns.forEach(btn => {
+  filterBtns.forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.filter === next);
   });
   render();
 }
 
 function startEdit(id: number): void {
-  if (!todos.some(todo => todo.id === id)) return;
+  if (!todos.some((todo) => todo.id === id)) return;
   editingId = id;
   render();
 }
@@ -147,7 +143,7 @@ inputEl.addEventListener('keydown', (event: KeyboardEvent) => {
   if (event.key === 'Enter') handleAdd();
 });
 
-filterBtns.forEach(btn => {
+filterBtns.forEach((btn) => {
   btn.addEventListener('click', () => {
     const value = btn.dataset.filter;
     if (value === 'all' || value === 'active' || value === 'completed') {
