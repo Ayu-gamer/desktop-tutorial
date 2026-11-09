@@ -1,7 +1,7 @@
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { addTodo, toggleTodo } from '../src/todo.ts';
-import type { Todo } from '../src/todo.ts';
+import { addTodo, toggleTodo } from '../src/todo';
+import type { Todo } from '../src/todo';
 
 // 这段是任务 3 中 AI 生成的测试，保留原样用于审查。
 // 其中「空白文本也应新增」和「不存在的 id 应抛错」与当前 API 契约不符。

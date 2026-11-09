@@ -1,12 +1,12 @@
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
   addTodo,
   parseTodoId,
   parseTodos,
   toggleTodo
-} from '../src/todo.ts';
-import type { Todo } from '../src/todo.ts';
+} from '../src/todo';
+import type { Todo } from '../src/todo';
 
 const base: readonly Todo[] = [
   { id: 2, text: '买牛奶', completed: false },

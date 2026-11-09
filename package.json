@@ -1,13 +1,25 @@
 {
-  "name": "todo-list-v2",
-  "version": "3.0.0",
+  "name": "todo-list-v3",
+  "version": "4.0.0",
   "private": true,
   "type": "module",
-  "description": "W9: Todo 列表 TypeScript 重构与单元测试",
+  "description": "W10: Todo 列表 V3.0 工程化收尾（Vite + ESLint + Vitest）",
   "scripts": {
-    "build": "node --no-warnings scripts/build.mjs",
-    "test": "node --test --experimental-strip-types tests/todo.test.ts",
-    "test:ai": "node --test --experimental-strip-types tests/ai-generated.test.ts",
-    "verify": "node --no-warnings scripts/build.mjs && node --test --experimental-strip-types tests/todo.test.ts"
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "lint": "eslint src/",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\""
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "8.57.0",
+    "prettier": "^3.9.10",
+    "typescript": "5.5.4",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
   }
 }

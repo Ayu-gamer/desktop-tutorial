@@ -4,13 +4,20 @@ import {
   deleteTodo,
   getVisibleTodos,
   nextTodoId,
-  parseTodoId,
   parseTodos,
   STORAGE_KEY,
   toggleTodo,
   updateTodo
-} from './todo.js';
-import type { Filter, Todo } from './todo.js';
+} from './todo';
+import type { Filter, Todo } from './todo';
+import {
+  focusEditInput,
+  renderCounter,
+  renderTodoList
+} from './todoListView';
+import type { TodoItemHandlers } from './todoItemView';
+import { resolveTodoClick } from './todoListActions';
+import type { TodoListAction } from './todoListActions';
 
 function required<T extends Element>(selector: string): T {
   const element = document.querySelector<T>(selector);
@@ -45,6 +52,43 @@ function load(): void {
   }
 }
 
+function render(): void {
+  renderTodoList(todoList, getVisibleTodos(todos, filter), itemHandlers);
+  renderCounter(counterEl, todos);
+
+  if (editingId !== null) {
+    focusEditInput(todoList, editingId);
+  }
+}
+
+function isEditing(id: number): boolean {
+  return editingId === id;
+}
+
+/** 失焦提交：空文本或未改动都不写入，其余情况更新文本并重绘。 */
+function commitEdit(todo: Todo, rawValue: string): void {
+  const next = rawValue.trim();
+  editingId = null;
+
+  if (next && next !== todo.text) {
+    todos = updateTodo(todos, todo.id, next);
+    save();
+  }
+
+  render();
+}
+
+function cancelEdit(): void {
+  editingId = null;
+  render();
+}
+
+const itemHandlers: TodoItemHandlers = {
+  isEditing,
+  commitEdit,
+  cancelEdit
+};
+
 function setFilter(next: Filter): void {
   filter = next;
   editingId = null;
@@ -73,96 +117,16 @@ function toggleById(id: number): void {
   render();
 }
 
-function render(): void {
-  todoList.replaceChildren();
+const listActions: Readonly<Record<TodoListAction, (id: number) => void>> = {
+  edit: startEdit,
+  delete: deleteTodoById,
+  toggle: toggleById
+};
 
-  const visible = getVisibleTodos(todos, filter);
-
-  if (visible.length === 0) {
-    const empty = document.createElement('li');
-    empty.className = 'empty-message';
-    empty.textContent = '暂无待办事项 ✨';
-    todoList.appendChild(empty);
-  } else {
-    visible.forEach(todo => {
-      const li = document.createElement('li');
-      li.className = 'todo-item' + (todo.completed ? ' completed' : '');
-      li.dataset.id = String(todo.id);
-
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.checked = todo.completed;
-      cb.dataset.action = 'toggle';
-
-      let textEl: HTMLInputElement | HTMLSpanElement;
-
-      if (editingId === todo.id) {
-        const editInput = document.createElement('input');
-        editInput.type = 'text';
-        editInput.className = 'todo-edit';
-        editInput.value = todo.text;
-
-        editInput.addEventListener('keydown', (event: KeyboardEvent) => {
-          if (event.key === 'Enter') {
-            event.preventDefault();
-            editInput.blur();
-          } else if (event.key === 'Escape') {
-            event.preventDefault();
-            editingId = null;
-            render();
-          }
-        });
-
-        editInput.addEventListener('blur', () => {
-          if (editingId !== todo.id) return;
-
-          const next = editInput.value.trim();
-          editingId = null;
-
-          if (next && next !== todo.text) {
-            todos = updateTodo(todos, todo.id, next);
-            save();
-          }
-
-          render();
-        });
-
-        textEl = editInput;
-      } else {
-        const span = document.createElement('span');
-        span.className = 'todo-text';
-        span.textContent = todo.text;
-        textEl = span;
-      }
-
-      const edit = document.createElement('button');
-      edit.className = 'edit-btn';
-      edit.dataset.action = 'edit';
-      edit.textContent = '✎';
-      edit.title = '编辑';
-
-      const del = document.createElement('button');
-      del.className = 'remove-btn';
-      del.dataset.action = 'delete';
-      del.textContent = '×';
-
-      li.append(cb, textEl, edit, del);
-      todoList.appendChild(li);
-    });
-  }
-
-  const remaining = todos.filter(todo => !todo.completed).length;
-  counterEl.textContent = `${remaining} 项未完成 / 共 ${todos.length} 项`;
-
-  if (editingId !== null) {
-    const editInput = todoList.querySelector<HTMLInputElement>(
-      `li[data-id="${editingId}"] .todo-edit`
-    );
-    if (editInput) {
-      editInput.focus();
-      editInput.select();
-    }
-  }
+function handleTodoListClick(event: MouseEvent): void {
+  const resolved = resolveTodoClick(event, todoList);
+  if (!resolved) return;
+  listActions[resolved.action](resolved.id);
 }
 
 function handleAdd(): void {
@@ -192,32 +156,7 @@ filterBtns.forEach(btn => {
   });
 });
 
-todoList.addEventListener('click', (event: MouseEvent) => {
-  const target = event.target;
-  if (!(target instanceof Element)) return;
-
-  const item = target.closest<HTMLLIElement>('li.todo-item');
-  if (!item || !todoList.contains(item)) return;
-
-  const id = parseTodoId(item.dataset.id);
-  if (id === null) return;
-
-  if (target.closest('.todo-edit')) return;
-
-  const editBtn = target.closest<HTMLButtonElement>('[data-action="edit"]');
-  if (editBtn && item.contains(editBtn)) {
-    startEdit(id);
-    return;
-  }
-
-  const delBtn = target.closest<HTMLButtonElement>('[data-action="delete"]');
-  if (delBtn && item.contains(delBtn)) {
-    deleteTodoById(id);
-    return;
-  }
-
-  toggleById(id);
-});
+todoList.addEventListener('click', handleTodoListClick);
 
 clearBtn.addEventListener('click', () => {
   editingId = null;
